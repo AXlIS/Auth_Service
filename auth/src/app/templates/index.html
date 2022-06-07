@@ -1,0 +1,11 @@
+<html>
+    <head>
+        <title>OAuth Flask</title>
+    </head>
+    <body>
+        <h1>OAuth</h1>
+            <p><a href="{{ url_for('oauth_api.oauth_authorize', provider='yandex') }}">Войти через Yandex</a></p>
+            <p><a href="{{ url_for('oauth_api.oauth_authorize', provider='mail') }}">Войти через mail</a></p>
+            <p><a href="{{ url_for('oauth_api.oauth_authorize', provider='vk') }}">Войти через VK</a></p>
+    </body>
+</html>
