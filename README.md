@@ -29,6 +29,8 @@
 - Pytest
 - SQLAlchemy
 - Oauth
+- JWT
+- Jaeger
 
 ## Как развернуть и запустить проект
 
