@@ -14,11 +14,9 @@
 **Авторизация через соц сети**
 [http://127.0.0.8/auth/api/v1/oauth/](http://127.0.0.8/auth/api/v1/oauth/)
 
-**Двухфакторную авторизацию**
+**Двухфакторная авторизация**
 [http://127.0.0.8/auth/api/v1/2fa/add](http://127.0.0.8/auth/api/v1/2fa/add)
 [http://127.0.0.8/auth/api/v1/2fa/confirm](http://127.0.0.8/auth/api/v1/2fa/confirm)
-
-и дальше уже при входе будет требовать код с устройства
 
 **ReCaptcha**
 [http://127.0.0.8/auth/api/v1/recaptcha](http://127.0.0.8/auth/api/v1/recaptcha)
