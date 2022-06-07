@@ -1,0 +1,120 @@
+version: "3.8"
+
+services:
+
+  auth-dev-db:
+    image: postgres:14-alpine
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data/
+      - ./postgre/test_create_schema.sql:/docker-entrypoint-initdb.d/create_schema.sql
+      - ./postgre/roles.sql:/docker-entrypoint-initdb.d/roles.sql
+    env_file:
+      - .env.db
+    ports:
+      - "5433:5433"
+    command: -p 5433
+
+  auth-dev-app:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./auth/:/usr/src/auth/
+    ports:
+      - "5000:5000"
+      - "50055:50055"
+    #    command: python app/main.py
+    env_file:
+      - .env.dev
+    depends_on:
+      - auth-db
+
+  auth-dev-redis:
+    image: redis:alpine
+    restart: always
+    command: --port 6378
+    ports:
+      - "6378:6378"
+
+  movies-db_dev:
+    image: postgres:14-alpine
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data/
+      - ./postgre/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    env_file:
+      - .env.async
+    expose:
+      - 5432
+
+  movies_dev:
+    command: python manage.py runserver 0.0.0.0:9000
+    image: mwtechdocker2/admin_panel:v1
+    volumes:
+      - static_volume_dev:/usr/src/app/static
+    ports:
+      - "8000:9000"
+    env_file:
+      - .env.async
+    depends_on:
+      - movies-db_dev
+
+  fastapi_dev:
+    build: ./fastapi
+    volumes:
+      - ./fastapi/:/usr/src/fastapi/
+    ports:
+      - "9000:9000"
+    env_file:
+      - .env.async
+    depends_on:
+      - movies-db_dev
+
+  elasticsearch_dev:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.7.0
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms200m -Xmx200m
+    ports:
+      - "9200:9200"
+
+  etl_dev:
+    image: mwtechdocker/etl:v1
+    deploy:
+      restart_policy:
+        delay: 5s
+        window: 5s
+    env_file:
+      - .env.async
+    volumes:
+      - ./etl/volumes/:/usr/src/etl/volumes/
+    depends_on:
+      - movies-db_dev
+      - elasticsearch_dev
+
+  redis_dev:
+    image: redis:alpine
+    restart: always
+    ports:
+      - "6379:6379"
+  nginx:
+    image: nginx:1.21.6
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/configs:/etc/nginx/conf.d:ro
+      - static_volume_dev:/app/static
+    depends_on:
+      - movies_dev
+      - fastapi_dev
+    ports:
+      - "80:80"
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
+
+volumes:
+  postgres_data_dev:
+  static_volume_dev:
+  postgres_auth_data:
